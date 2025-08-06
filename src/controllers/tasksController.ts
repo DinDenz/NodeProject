@@ -1,20 +1,22 @@
-import express from "express";
-import { tasks } from "./data.js";
+import { DOESNT_EXISTS } from "../constants.ts";
+import { tasks } from "../data.ts";
+import type { Request, Response } from "express";
 
-const app = express();
-const PORT = 3000;
-app.use(express.json());
+export const getAllTasks = (req: Request, res: Response) => {
+  console.log(req.query);
+  console.log(req.body);
 
-app.get("/", (req, res) => {
-  /*   res.send("Hello world"); */
-  res.json({ message: "Hello world" });
-});
+  const isSorted = req.query.sorted;
 
-app.get("/tasks", (req, res) => {
-  res.json({ data: tasks });
-});
+  if (isSorted) {
+    const sortedTasks = tasks.sort((a, b) => a.title.localeCompare(b.title));
+    res.json({ data: sortedTasks });
+  } else {
+    res.json({ data: tasks });
+  }
+};
 
-app.get("/tasks/:id", (req, res) => {
+export const getTaskById = (req: Request, res: Response) => {
   const taskId = req.params.id;
 
   const task = tasks.find((task) => task.id === taskId);
@@ -24,13 +26,9 @@ app.get("/tasks/:id", (req, res) => {
   } else {
     res.status(404).json({ error: "Nothing found" });
   }
-});
+};
 
-/* ========================================= */
-
-const DOESNT_EXISTS = -1;
-
-app.post("/tasks", (req, res) => {
+export const createTask = (req: Request, res: Response) => {
   const title = req.body.title;
 
   const newTask = { id: (tasks.length + 1).toString(), title };
@@ -38,9 +36,9 @@ app.post("/tasks", (req, res) => {
   tasks.push(newTask);
 
   res.json({ data: newTask });
-});
+};
 
-app.put("/tasks/:id", (req, res) => {
+export const updateTask = (req: Request, res: Response) => {
   const taskId = req.params.id;
 
   const taskIndex = tasks.findIndex((task) => task.id === taskId);
@@ -52,9 +50,9 @@ app.put("/tasks/:id", (req, res) => {
   } else {
     res.status(404).json({ error: "Nothing found. Can't update" });
   }
-});
+};
 
-app.delete("/tasks/:id", (req, res) => {
+export const deleteTask = (req: Request, res: Response) => {
   const taskId = req.params.id;
   const taskIndex = tasks.findIndex((task) => task.id === taskId);
 
@@ -65,10 +63,4 @@ app.delete("/tasks/:id", (req, res) => {
   } else {
     res.status(404).json({ error: "Nothing found. Can't delete" });
   }
-});
-
-app.use((req, res) => res.status(404).json({ error: "not found" }));
-
-app.listen(PORT, () => {
-  console.log(`Server is running in localhost:${PORT}`);
-});
+};
